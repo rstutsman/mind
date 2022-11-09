@@ -134,6 +134,16 @@ static int page_cache_tree_insert(struct address_space *mapping,
 		if (shadowp)
 			*shadowp = p;
 	}
+
+	// RSS: We don't do this here. Instead, we let the page be added to
+	// the radix tree unmodified. Then, when get_block is called on
+	// simplefs, we patch up the radix tree. This does mean sometimes
+	// for a simplefs inode, though, there can be pages in mapping that
+	// are for file offsets that still haven't been translated to blkids
+	// yet.
+	//if (mapping->a_ops->page_to_blkid)
+		//page = mapping->a_ops->page_to_blkid(page);
+
 	__radix_tree_replace(&mapping->page_tree, node, slot, page,
 			     workingset_lookup_update(mapping));
 	mapping->nrpages++;
@@ -1430,6 +1440,9 @@ repeat:
 	page = NULL;
 	pagep = radix_tree_lookup_slot(&mapping->page_tree, offset);
 	if (pagep) {
+		if (mapping->a_ops->translate_page_ptr)
+			*pagep = mapping->a_ops->translate_page_ptr(*pagep)
+
 		page = radix_tree_deref_slot(pagep);
 		if (unlikely(!page))
 			goto out;

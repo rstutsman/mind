@@ -372,6 +372,7 @@ struct address_space_operations {
 	int (*swap_activate)(struct swap_info_struct *sis, struct file *file,
 				sector_t *span);
 	void (*swap_deactivate)(struct file *file);
+	struct page * (*translate_page_ptr)(struct page *page);
 };
 
 extern const struct address_space_operations empty_aops;

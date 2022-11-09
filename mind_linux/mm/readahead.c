@@ -127,6 +127,9 @@ static int read_pages(struct address_space *mapping, struct file *filp,
 	for (page_idx = 0; page_idx < nr_pages; page_idx++) {
 		struct page *page = lru_to_page(pages);
 		list_del(&page->lru);
+		// RSS: We don't need to translate the pointer added to mapping
+		// here yet. readpage() handles this by coming back and correcting
+		// the value inserted into mapping here.
 		if (!add_to_page_cache_lru(page, mapping, page->index, gfp))
 			mapping->a_ops->readpage(filp, page);
 		put_page(page);
